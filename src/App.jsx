@@ -1,407 +1,470 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import "./App.css";
 
-const sectors = {
-  Technology: { revenue: 8.2, growth: 21, customers: 342 },
-  Healthcare: { revenue: 5.6, growth: 15, customers: 286 },
-  BFSI: { revenue: 4.7, growth: 8, customers: 218 },
-  Manufacturing: { revenue: 3.8, growth: -3, customers: 196 },
-  Retail: { revenue: 2.5, growth: 6, customers: 242 },
-};
+const salesData = [
+  { id: 1, date: "2026-01-08", rep: "Aarav Sharma", region: "North", product: "Enterprise", revenue: 420000, deals: 8, status: "Won" },
+  { id: 2, date: "2026-01-14", rep: "Priya Mehta", region: "West", product: "Growth", revenue: 280000, deals: 6, status: "Won" },
+  { id: 3, date: "2026-01-21", rep: "Rohan Verma", region: "South", product: "Enterprise", revenue: 510000, deals: 9, status: "Won" },
+  { id: 4, date: "2026-02-03", rep: "Ananya Singh", region: "North", product: "Starter", revenue: 165000, deals: 12, status: "Won" },
+  { id: 5, date: "2026-02-11", rep: "Aarav Sharma", region: "East", product: "Growth", revenue: 320000, deals: 7, status: "Won" },
+  { id: 6, date: "2026-02-18", rep: "Priya Mehta", region: "West", product: "Enterprise", revenue: 620000, deals: 11, status: "Won" },
+  { id: 7, date: "2026-03-05", rep: "Rohan Verma", region: "South", product: "Growth", revenue: 360000, deals: 8, status: "Won" },
+  { id: 8, date: "2026-03-13", rep: "Ananya Singh", region: "North", product: "Enterprise", revenue: 470000, deals: 9, status: "Won" },
+  { id: 9, date: "2026-03-22", rep: "Aarav Sharma", region: "West", product: "Starter", revenue: 190000, deals: 14, status: "Won" },
+  { id: 10, date: "2026-04-04", rep: "Priya Mehta", region: "East", product: "Enterprise", revenue: 580000, deals: 10, status: "Won" },
+  { id: 11, date: "2026-04-17", rep: "Rohan Verma", region: "South", product: "Enterprise", revenue: 690000, deals: 12, status: "Won" },
+  { id: 12, date: "2026-05-02", rep: "Ananya Singh", region: "North", product: "Growth", revenue: 410000, deals: 9, status: "Won" },
+  { id: 13, date: "2026-05-15", rep: "Aarav Sharma", region: "West", product: "Enterprise", revenue: 730000, deals: 13, status: "Won" },
+  { id: 14, date: "2026-05-23", rep: "Priya Mehta", region: "East", product: "Growth", revenue: 390000, deals: 8, status: "Won" },
+  { id: 15, date: "2026-06-06", rep: "Rohan Verma", region: "South", product: "Enterprise", revenue: 810000, deals: 14, status: "Won" },
+  { id: 16, date: "2026-06-19", rep: "Ananya Singh", region: "North", product: "Growth", revenue: 450000, deals: 10, status: "Won" },
+  { id: 17, date: "2026-07-03", rep: "Aarav Sharma", region: "West", product: "Enterprise", revenue: 870000, deals: 15, status: "Won" },
+  { id: 18, date: "2026-07-18", rep: "Priya Mehta", region: "East", product: "Enterprise", revenue: 640000, deals: 11, status: "Won" },
+  { id: 19, date: "2026-08-05", rep: "Rohan Verma", region: "South", product: "Growth", revenue: 520000, deals: 10, status: "Won" },
+  { id: 20, date: "2026-08-21", rep: "Ananya Singh", region: "North", product: "Enterprise", revenue: 760000, deals: 13, status: "Won" },
+];
 
-const insights = {
-  "Why is revenue growing?":
-    "Technology is the strongest growth driver, contributing ₹8.2 Cr with 21% growth. Healthcare is the second strongest sector.",
-  "Which sector should we focus on?":
-    "Technology should be prioritized because it has both the highest revenue contribution and the strongest growth rate.",
-  "Which sector is underperforming?":
-    "Manufacturing is underperforming with ₹3.8 Cr revenue and -3% growth. Customer churn and pipeline quality should be investigated.",
-  "What should we do next?":
-    "Focus sales resources on Technology and Healthcare while investigating the decline in Manufacturing.",
-};
+const monthlyRevenue = [
+  { month: "Jan", value: 1.38 },
+  { month: "Feb", value: 1.55 },
+  { month: "Mar", value: 1.62 },
+  { month: "Apr", value: 1.73 },
+  { month: "May", value: 1.98 },
+  { month: "Jun", value: 2.14 },
+  { month: "Jul", value: 2.31 },
+  { month: "Aug", value: 2.54 },
+];
+
+function money(value) {
+  if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)} Cr`;
+  if (value >= 100000) return `₹${(value / 100000).toFixed(1)} L`;
+  return `₹${value.toLocaleString("en-IN")}`;
+}
 
 function App() {
-  const [sector, setSector] = useState("Technology");
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState(
-    "Ask the AI Sales Analyst a question about your sales performance."
-  );
+  const [page, setPage] = useState("Dashboard");
+  const [region, setRegion] = useState("All");
+  const [product, setProduct] = useState("All");
+  const [lastUpdated, setLastUpdated] = useState("Just now");
 
-  const current = sectors[sector];
+  const filteredData = useMemo(() => {
+    return salesData.filter((row) => {
+      const regionMatch = region === "All" || row.region === region;
+      const productMatch = product === "All" || row.product === product;
+      return regionMatch && productMatch;
+    });
+  }, [region, product]);
 
-  function askAI() {
-    const result = insights[question];
+  const totalRevenue = filteredData.reduce((sum, row) => sum + row.revenue, 0);
+  const totalDeals = filteredData.reduce((sum, row) => sum + row.deals, 0);
+  const avgDeal = totalDeals ? totalRevenue / totalDeals : 0;
 
-    setAnswer(
-      result ||
-        "Based on the current data, Technology is the strongest growth opportunity while Manufacturing requires attention."
-    );
-  }
+  const reps = [...new Set(salesData.map((x) => x.rep))];
+
+  const leaderboard = reps
+    .map((rep) => ({
+      rep,
+      revenue: filteredData
+        .filter((x) => x.rep === rep)
+        .reduce((sum, x) => sum + x.revenue, 0),
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+
+  const regionStats = ["North", "South", "East", "West"].map((name) => ({
+    name,
+    revenue: filteredData
+      .filter((x) => x.region === name)
+      .reduce((sum, x) => sum + x.revenue, 0),
+  }));
+
+  const productStats = ["Enterprise", "Growth", "Starter"].map((name) => ({
+    name,
+    revenue: filteredData
+      .filter((x) => x.product === name)
+      .reduce((sum, x) => sum + x.revenue, 0),
+  }));
+
+  const refreshDashboard = () => {
+    setLastUpdated(new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }));
+  };
 
   return (
     <div className="app">
-
-      {/* NAVBAR */}
-      <nav className="navbar">
+      <header className="navbar">
         <div className="brand">
           <div className="logo">VC</div>
           <div>
-            <h3>VORTEX CUBE</h3>
-            <span>AI SALES ANALYST</span>
+            <div className="brand-name">VORTEX CUBE</div>
+            <div className="brand-subtitle">AI SALES ANALYST</div>
           </div>
         </div>
 
-        <div className="nav-links">
-          <a href="#dashboard">Dashboard</a>
-          <a href="#analytics">Analytics</a>
-          <a href="#ai">AI Insights</a>
-        </div>
+        <nav>
+          {["Dashboard", "Analytics", "AI Insights"].map((item) => (
+            <button
+              key={item}
+              className={page === item ? "nav-active" : ""}
+              onClick={() => setPage(item)}
+            >
+              {item}
+            </button>
+          ))}
+        </nav>
 
         <div className="ai-status">
-          ● AI POWERED
+          <span></span> AI POWERED
         </div>
-      </nav>
+      </header>
 
-
-      {/* HERO */}
-      <section className="hero">
-
-        <div>
-          <p className="eyebrow">SALES INTELLIGENCE PLATFORM</p>
-
-          <h1>
-            Turn Sales Data
-            <br />
-            <span>Into Decisions.</span>
-          </h1>
-
-          <p className="hero-text">
-            An AI-powered dashboard that transforms sales
-            data into actionable business insights.
-          </p>
-
-          <a href="#dashboard" className="primary-button">
-            Explore Dashboard →
-          </a>
-        </div>
-
-        <div className="hero-card">
-
-          <div className="card-top">
-            <span>AI ANALYSIS</span>
-            <span className="live">● LIVE</span>
-          </div>
-
-          <h2>₹24.8 Cr</h2>
-
-          <p>Total Revenue</p>
-
-          <div className="mini-bars">
-            <i style={{ height: "35%" }}></i>
-            <i style={{ height: "50%" }}></i>
-            <i style={{ height: "42%" }}></i>
-            <i style={{ height: "65%" }}></i>
-            <i style={{ height: "75%" }}></i>
-            <i style={{ height: "95%" }}></i>
-          </div>
-
-          <strong className="growth">+14.2%</strong>
-          <small> revenue growth</small>
-
-        </div>
-
-      </section>
-
-
-      {/* KPI DASHBOARD */}
-      <section className="dashboard" id="dashboard">
-
-        <div className="section-title">
+      <main>
+        <section className="hero">
           <div>
-            <p className="eyebrow">OVERVIEW</p>
-            <h2>Sales Performance</h2>
+            <p className="eyebrow">SALES INTELLIGENCE PLATFORM</p>
+            <h1>
+              Turn Sales Data
+              <br />
+              <span>Into Decisions.</span>
+            </h1>
+            <p className="hero-text">
+              An AI-powered dashboard that transforms sales data into
+              actionable business insights.
+            </p>
           </div>
 
-          <select
-            value={sector}
-            onChange={(e) => setSector(e.target.value)}
-          >
-            {Object.keys(sectors).map((name) => (
-              <option key={name}>{name}</option>
-            ))}
-          </select>
-        </div>
-
-
-        <div className="kpi-grid">
-
-          <div className="kpi-card">
-            <span>Revenue</span>
-            <strong>₹{current.revenue} Cr</strong>
-            <small className="positive">
-              ↑ {current.growth}% growth
-            </small>
-          </div>
-
-          <div className="kpi-card">
-            <span>Pipeline</span>
-            <strong>₹41.2 Cr</strong>
-            <small className="positive">↑ 18.6%</small>
-          </div>
-
-          <div className="kpi-card">
-            <span>Win Rate</span>
-            <strong>28.6%</strong>
-            <small className="positive">↑ 4.2%</small>
-          </div>
-
-          <div className="kpi-card">
-            <span>Customers</span>
-            <strong>{current.customers}</strong>
-            <small className="positive">↑ 11.8%</small>
-          </div>
-
-        </div>
-
-
-        {/* ANALYTICS */}
-        <div className="analytics-grid">
-
-          <div className="panel">
-
-            <div className="panel-heading">
-              <div>
-                <h3>Revenue Trend</h3>
-                <p>Monthly performance</p>
-              </div>
-
-              <strong className="positive">+14.2%</strong>
+          <div className="hero-card">
+            <div className="card-top">
+              <span>AI ANALYSIS</span>
+              <span className="live">● LIVE</span>
             </div>
 
-            <div className="chart">
+            <div className="hero-number">{money(totalRevenue)}</div>
+            <div className="hero-label">Total Revenue</div>
 
-              <div className="grid-line"></div>
-              <div className="grid-line"></div>
-              <div className="grid-line"></div>
-
-              <svg viewBox="0 0 600 220">
-                <polyline
-                  points="0,180 100,150 200,165 300,110 400,125 500,65 600,35"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-
-                <circle cx="600" cy="35" r="7" fill="currentColor" />
-              </svg>
-
+            <div className="mini-bars">
+              {monthlyRevenue.map((item) => (
+                <div
+                  key={item.month}
+                  className="mini-bar"
+                  style={{ height: `${item.value * 38}px` }}
+                  title={`${item.month}: ₹${item.value} Cr`}
+                ></div>
+              ))}
             </div>
 
-            <div className="months">
-              <span>Jan</span>
-              <span>Feb</span>
-              <span>Mar</span>
-              <span>Apr</span>
-              <span>May</span>
-              <span>Jun</span>
-              <span>Jul</span>
-            </div>
+            <div className="growth">+14.2% revenue growth</div>
+          </div>
+        </section>
 
+        <section className="toolbar">
+          <div>
+            <span className="filter-label">Region</span>
+            <select value={region} onChange={(e) => setRegion(e.target.value)}>
+              <option>All</option>
+              <option>North</option>
+              <option>South</option>
+              <option>East</option>
+              <option>West</option>
+            </select>
           </div>
 
+          <div>
+            <span className="filter-label">Product</span>
+            <select value={product} onChange={(e) => setProduct(e.target.value)}>
+              <option>All</option>
+              <option>Enterprise</option>
+              <option>Growth</option>
+              <option>Starter</option>
+            </select>
+          </div>
 
-          <div className="panel">
+          <button className="refresh-btn" onClick={refreshDashboard}>
+            ↻ Refresh Data
+          </button>
 
-            <div className="panel-heading">
-              <div>
-                <h3>Revenue by Sector</h3>
-                <p>Contribution to total revenue</p>
-              </div>
-            </div>
+          <span className="updated">Updated {lastUpdated}</span>
+        </section>
 
-            <div className="sector-bars">
+        {page === "Dashboard" && (
+          <>
+            <section className="kpi-grid">
+              <KPI title="Total Revenue" value={money(totalRevenue)} change="+14.2%" />
+              <KPI title="Closed Deals" value={totalDeals} change="+11.8%" />
+              <KPI title="Avg. Deal Size" value={money(avgDeal)} change="+8.6%" />
+              <KPI title="Conversion Rate" value="18.6%" change="+3.4%" />
+            </section>
 
-              {Object.entries(sectors).map(
-                ([name, data]) => (
+            <section className="content-grid">
+              <RevenueChart />
 
-                  <div className="sector-row" key={name}>
-
-                    <div className="sector-name">
-                      <span>{name}</span>
-                      <strong>₹{data.revenue} Cr</strong>
-                    </div>
-
-                    <div className="bar">
-                      <div
-                        style={{
-                          width: `${(data.revenue / 8.2) * 100}%`,
-                        }}
-                      ></div>
-                    </div>
-
+              <div className="panel">
+                <div className="panel-heading">
+                  <div>
+                    <span className="eyebrow">PERFORMANCE</span>
+                    <h2>Regional Revenue</h2>
                   </div>
+                </div>
 
-                )
-              )}
+                <div className="region-list">
+                  {regionStats
+                    .sort((a, b) => b.revenue - a.revenue)
+                    .map((item) => {
+                      const max = Math.max(...regionStats.map((x) => x.revenue));
+                      return (
+                        <div className="region-row" key={item.name}>
+                          <div className="region-info">
+                            <span>{item.name}</span>
+                            <strong>{money(item.revenue)}</strong>
+                          </div>
+                          <div className="progress">
+                            <div
+                              style={{
+                                width: `${(item.revenue / max) * 100}%`,
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            </section>
 
+            <section className="content-grid lower">
+              <div className="panel">
+                <div className="panel-heading">
+                  <div>
+                    <span className="eyebrow">PRODUCT MIX</span>
+                    <h2>Revenue by Product</h2>
+                  </div>
+                </div>
+
+                <div className="product-list">
+                  {productStats.map((item) => (
+                    <div className="product-row" key={item.name}>
+                      <div className="product-icon">
+                        {item.name === "Enterprise" ? "E" : item.name === "Growth" ? "G" : "S"}
+                      </div>
+                      <div className="product-name">
+                        <strong>{item.name}</strong>
+                        <span>{Math.round((item.revenue / totalRevenue) * 100)}% of revenue</span>
+                      </div>
+                      <strong>{money(item.revenue)}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="panel">
+                <div className="panel-heading">
+                  <div>
+                    <span className="eyebrow">SALES TEAM</span>
+                    <h2>Top Performers</h2>
+                  </div>
+                </div>
+
+                <div className="leaderboard">
+                  {leaderboard.map((item, index) => (
+                    <div className="leader-row" key={item.rep}>
+                      <div className="rank">{index + 1}</div>
+                      <div className="avatar">
+                        {item.rep
+                          .split(" ")
+                          .map((x) => x[0])
+                          .join("")}
+                      </div>
+                      <div className="leader-name">
+                        <strong>{item.rep}</strong>
+                        <span>Sales Executive</span>
+                      </div>
+                      <strong>{money(item.revenue)}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          </>
+        )}
+
+        {page === "Analytics" && (
+          <section className="analytics-page">
+            <div className="page-title">
+              <span className="eyebrow">ANALYTICS ENGINE</span>
+              <h2>Sales Performance Analytics</h2>
+              <p>Explore the underlying fictional sales dataset powering this dashboard.</p>
             </div>
 
-          </div>
+            <RevenueChart />
 
-        </div>
+            <div className="panel table-panel">
+              <div className="panel-heading">
+                <div>
+                  <span className="eyebrow">RAW DATA</span>
+                  <h2>Sales Transactions</h2>
+                </div>
+                <span className="data-badge">{filteredData.length} records</span>
+              </div>
 
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Sales Rep</th>
+                      <th>Region</th>
+                      <th>Product</th>
+                      <th>Deals</th>
+                      <th>Revenue</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
 
-        {/* FUNNEL */}
-        <div className="panel funnel-panel">
-
-          <p className="eyebrow">PIPELINE</p>
-          <h3>Sales Funnel</h3>
-
-          <div className="funnel">
-
-            <div>
-              <strong>1,840</strong>
-              <span>Leads</span>
+                  <tbody>
+                    {filteredData.map((row) => (
+                      <tr key={row.id}>
+                        <td>{row.date}</td>
+                        <td>{row.rep}</td>
+                        <td>{row.region}</td>
+                        <td>{row.product}</td>
+                        <td>{row.deals}</td>
+                        <td>{money(row.revenue)}</td>
+                        <td>
+                          <span className="status">● {row.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
+          </section>
+        )}
 
-            <b>→</b>
-
-            <div>
-              <strong>920</strong>
-              <span>Qualified</span>
-            </div>
-
-            <b>→</b>
-
-            <div>
-              <strong>520</strong>
-              <span>Demo</span>
-            </div>
-
-            <b>→</b>
-
-            <div>
-              <strong>280</strong>
-              <span>Proposal</span>
-            </div>
-
-            <b>→</b>
-
-            <div>
-              <strong>145</strong>
-              <span>Negotiation</span>
-            </div>
-
-            <b>→</b>
-
-            <div className="won">
-              <strong>82</strong>
-              <span>Closed Won</span>
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      {/* AI SECTION */}
-      <section className="ai-section" id="ai">
-
-        <div className="ai-box">
-
-          <div className="ai-heading">
-
-            <div className="ai-icon">✦</div>
-
-            <div>
-              <p className="eyebrow">INTELLIGENCE LAYER</p>
-              <h2>AI Sales Analyst</h2>
+        {page === "AI Insights" && (
+          <section className="insights-page">
+            <div className="page-title">
+              <span className="eyebrow">AI REASONING ENGINE</span>
+              <h2>AI-Powered Sales Insights</h2>
               <p>
-                Ask questions about your sales performance.
+                Automated observations generated from the fictional sales
+                dataset.
               </p>
             </div>
 
-          </div>
+            <div className="insight-grid">
+              <Insight
+                icon="↑"
+                title="Revenue Momentum"
+                text="Revenue has increased consistently across the last four reporting periods, indicating positive sales momentum."
+                tag="POSITIVE"
+              />
 
+              <Insight
+                icon="★"
+                title="Enterprise Opportunity"
+                text="Enterprise accounts contribute the largest share of revenue. Prioritising high-value enterprise leads could improve overall deal economics."
+                tag="HIGH IMPACT"
+              />
 
-          <div className="ai-input">
+              <Insight
+                icon="!"
+                title="Regional Opportunity"
+                text="The North and West regions show strong performance and represent attractive areas for additional sales capacity."
+                tag="OPPORTUNITY"
+              />
 
-            <input
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") askAI();
-              }}
-              placeholder="Ask: Which sector should we focus on?"
-            />
+              <Insight
+                icon="◆"
+                title="Rep Performance"
+                text="A small group of representatives contributes a significant portion of total revenue. Replicate their sales practices across the wider team."
+                tag="RECOMMENDATION"
+              />
+            </div>
 
-            <button onClick={askAI}>
-              ✦ Analyse
-            </button>
-
-          </div>
-
-
-          <div className="suggestions">
-
-            {Object.keys(insights).map((item) => (
-
-              <button
-                key={item}
-                onClick={() => {
-                  setQuestion(item);
-                  setAnswer(insights[item]);
-                }}
-              >
-                {item}
-              </button>
-
-            ))}
-
-          </div>
-
-
-          <div className="ai-answer">
-
-            <div className="answer-title">
-              <span>✦</span>
-
+            <div className="ai-summary">
+              <div className="ai-orb">✦</div>
               <div>
-                <strong>AI Insight</strong>
-                <small>Generated from sales data</small>
+                <span className="eyebrow">EXECUTIVE SUMMARY</span>
+                <h2>Sales performance is trending upward.</h2>
+                <p>
+                  Based on the current dataset, Vortex Cube should focus on
+                  enterprise accounts, strengthen the North and West regions,
+                  and replicate the behaviour of top-performing sales
+                  representatives.
+                </p>
               </div>
             </div>
+          </section>
+        )}
 
-            <p>{answer}</p>
+        <section className="disclaimer">
+          <span>●</span>
+          Demo environment · All sales data shown is fictional and created for
+          product demonstration purposes.
+        </section>
+      </main>
+    </div>
+  );
+}
 
-            <div className="recommendation">
-              <strong>Recommended Action</strong>
+function KPI({ title, value, change }) {
+  return (
+    <div className="kpi">
+      <span>{title}</span>
+      <strong>{value}</strong>
+      <small>↑ {change} vs previous period</small>
+    </div>
+  );
+}
 
-              <span>
-                Focus resources on high-growth sectors and
-                investigate declining segments.
-              </span>
-            </div>
+function Insight({ icon, title, text, tag }) {
+  return (
+    <div className="insight-card">
+      <div className="insight-icon">{icon}</div>
+      <span className="insight-tag">{tag}</span>
+      <h3>{title}</h3>
+      <p>{text}</p>
+    </div>
+  );
+}
 
-          </div>
+function RevenueChart() {
+  const max = Math.max(...monthlyRevenue.map((x) => x.value));
 
+  return (
+    <div className="panel chart-panel">
+      <div className="panel-heading">
+        <div>
+          <span className="eyebrow">REVENUE TREND</span>
+          <h2>Monthly Revenue</h2>
         </div>
 
-      </section>
+        <span className="chart-total">₹2.54 Cr</span>
+      </div>
 
+      <div className="chart">
+        <div className="chart-grid">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
 
-      {/* FOOTER */}
-      <footer>
-        <strong>VORTEX CUBE</strong>
-        <p>AI-assisted Sales Intelligence Demo</p>
-        <small>
-          Business requirement → AI prompt → Interface →
-          Data visualization → AI insights
-        </small>
-      </footer>
-
+        <div className="bars">
+          {monthlyRevenue.map((item) => (
+            <div className="bar-column" key={item.month}>
+              <div
+                className="bar"
+                style={{ height: `${(item.value / max) * 88}%` }}
+                title={`₹${item.value} Cr`}
+              ></div>
+              <span>{item.month}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
