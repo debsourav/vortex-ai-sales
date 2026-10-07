@@ -1,0 +1,21 @@
+id,date,rep,region,product,revenue,deals,status
+1,2026-01-08,Aarav Sharma,North,Websites,4200000,8,Won
+2,2026-01-14,Priya Mehta,West,SaaS,280000,6,Won
+3,2026-01-21,Rohan Verma,South,Websites,510000,9,Won
+4,2026-02-03,Ananya Singh,North,CRM,165000,12,Won
+5,2026-02-11,Aarav Sharma,East,SaaS,320000,7,Lost
+6,2026-02-18,Priya Mehta,West,Websites,620000,11,Won
+7,2026-03-05,Rohan Verma,South,SaaS,360000,8,Won
+8,2026-03-13,Ananya Singh,North,Websites,470000,9,Won
+9,2026-03-22,Aarav Sharma,West,CRM,190000,14,Won
+10,2026-04-04,Priya Mehta,East,Websites,580000,10,Won
+11,2026-04-17,Rohan Verma,South,Websites,690000,12,Won
+12,2026-05-02,Ananya Singh,North,SaaS,410000,9,Won
+13,2026-05-15,Aarav Sharma,West,Websites,730000,13,Won
+14,2026-05-23,Priya Mehta,East,SaaS,390000,8,Won
+15,2026-06-06,Rohan Verma,South,Websites,810000,14,Won
+16,2026-06-19,Ananya Singh,North,SaaS,450000,10,Won
+17,2026-07-03,Aarav Sharma,West,Websites,870000,15,Won
+18,2026-07-18,Priya Mehta,East,Websites,640000,11,Won
+19,2026-08-05,Rohan Verma,South,SaaS,520000,10,Won
+20,2026-08-21,Ananya Singh,North,Websites,760000,13,Won
